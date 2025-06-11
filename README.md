@@ -172,6 +172,100 @@ if let clipboardData = clipboardManager.readFromClipboard() {
 }
 ```
 
+## Speaker Detection
+
+BoxOSOX includes advanced speaker detection capabilities that can identify different speakers in a conversation and track their participation. This is particularly useful for:
+
+- Multi-person conversations
+- Meeting transcriptions
+- Speaker diarization
+- Conversation analysis
+
+### Basic Speaker Detection
+
+```swift
+import BoxOSOX
+
+// Initialize the speech analyzer with speaker detection
+let analyzer = SpeechAnalyzer(
+    silenceThreshold: 0.01,
+    minSilenceDuration: 0.5,
+    sampleRate: 44100.0,
+    maxSpeakers: 4  // Maximum number of speakers to detect
+)
+
+// Analyze audio data
+let segments = try analyzer.analyzeSpeech(audioData)
+
+// Process speech segments with speaker information
+for segment in segments {
+    if let speakerId = segment.speakerId {
+        print("Speaker \(speakerId) spoke from \(segment.startTime) to \(segment.endTime)")
+        print("Confidence: \(segment.speakerConfidence ?? 0)")
+    }
+}
+```
+
+### Speaker Statistics
+
+The analyzer provides detailed statistics about each speaker's participation:
+
+```swift
+let stats = analyzer.getSpeechStatistics(segments)
+
+// Access speaker statistics
+if let speakerStats = stats["speakerStatistics"] as? [String: [String: Any]] {
+    for (speakerId, stats) in speakerStats {
+        print("Speaker \(speakerId):")
+        print("  Total Duration: \(stats["totalDuration"] ?? 0) seconds")
+        print("  Segment Count: \(stats["segmentCount"] ?? 0)")
+        print("  Average Confidence: \(stats["averageConfidence"] ?? 0)")
+    }
+}
+```
+
+### Speaker-Aware Pattern Detection
+
+The analyzer can detect speech patterns while considering speaker changes:
+
+```swift
+// Detect paragraph breaks (now considers speaker changes)
+let paragraphBreaks = analyzer.detectParagraphBreaks(segments)
+
+// Detect sentence endings (now considers speaker changes)
+let sentenceEndings = analyzer.detectSentenceEndings(segments)
+```
+
+### Speaker Detection Features
+
+- **Multiple Speaker Support**: Detect up to 4 speakers by default (configurable)
+- **Speaker Confidence**: Each speaker identification includes a confidence score
+- **Speaker Transitions**: Automatically detect when speakers change
+- **Speaker Statistics**: Track speaking time, segment count, and confidence per speaker
+- **Integration with Patterns**: Combine speaker detection with speech pattern analysis
+
+### Best Practices for Speaker Detection
+
+1. **Audio Quality**:
+   - Use high-quality audio input
+   - Minimize background noise
+   - Ensure speakers are clearly audible
+
+2. **Configuration**:
+   - Set appropriate `maxSpeakers` based on your use case
+   - Adjust `silenceThreshold` and `minSilenceDuration` for your environment
+   - Consider the expected number of speakers
+
+3. **Speaker Identification**:
+   - Use confidence scores to filter out uncertain identifications
+   - Consider speaker transitions in your analysis
+   - Track speaker statistics for better insights
+
+4. **Performance Considerations**:
+   - Speaker detection adds computational overhead
+   - Consider processing in chunks for long recordings
+   - Cache speaker profiles when possible
+
 ## Pattern Detection Types
 
 The library can detect the following speech patterns:
